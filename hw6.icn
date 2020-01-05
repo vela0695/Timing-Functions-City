@@ -1,0 +1,436 @@
+$include "evdefs.icn"
+$include "keysyms.icn"
+link scatlib
+link evinit
+link evaltree
+
+global constructorTable, procList, functList, fgTable, activeTable, totalTable, cubePositionX, posz2, totalCubes, roadTable
+global posx, posy, posz, dirx, diry, dirz, d2, theta, epsilon, poszz, posxx, posyy, twidths, wfont
+global startValue, distanceApart, cubeTime, cubeBrightness, delayTime
+record activation (node, parent, children)
+
+procedure main(argv)
+    receivedPos:= "F"
+    receivedGeo:= "F"
+    receivedCubeTime:= "F"
+    totalCubes:= table()
+    cubePositionX:= table()
+    totalTable:=table()
+    constructorTable:= table()
+    activeTable:= table()
+    procList:= []
+    functList:= []
+    poszz:= posz2:= 20.0
+    startValue:= 10.0
+    posxx:= 0.0
+    posyy:= 1.2*2
+    fgTable:= table()
+    distanceApart:= 5
+    roadTable:= table()
+    roadY:= (1.2*2)-((1.2*2)/2)
+    roadZ:= -20-(1.2*2)
+    cubeBrightness:= table()
+    delayTime:= 100
+
+    every i:= 1 to *argv do{
+        argument:= argv[i]
+        # This will check for the -pos -geo or -t args 
+        argument ? {
+            if find("-pos=", argument) then {
+                move(5) # Moves cursor after words -pos=
+                xSplit1:= find("x",  argument)
+                posx:= (move(xSplit1-5-1)) # This is the first number
+                move(1) # Move past the x
+                posy:= (tab(upto("x"))+2) # Added 2 to be slightly above road and my default 0x0x0 position is 0x2x0
+                move(1)
+                posz:= (tab(0))
+                receivedPos:= "T"
+            }
+
+            if find("-geo=", argument) then {
+                move(5) # Moves cursor after words -geo=
+                xSplit1:= find("x",  argument)
+                write((move(xSplit1-5-1))) # This is the first number
+                move(1) # Move past the x
+                write((tab(upto("x"))))
+                move(1)
+                write((tab(0)))
+                receivedGeo:= "T"
+            }
+
+            # Time argument to know how often to draw a new cube
+            if find("-t=", argument) then {
+                move(3) # Moves cursor after -t=
+                cubeTime:= (tab(0))
+                receivedCubeTime:= "T"
+            }
+        }
+    }
+    # If no pos args are received default (0.0, 0.0, 0.0) which for me = (0.0, 2.0, 0.0)
+    if receivedPos == "F" then{
+        posz:= posx:= 0.0 
+        posy:= 2 # Y position is slightly higher to see the road
+    }
+    # This part is opitional, finish if I have extra time
+    # If receivedGeo == "F" then write("Did not receive -geo")
+    # If times per cube were not received defult is 100ms 
+    if receivedCubeTime == "F" then cubeTime:= 100
+    EvInit(argv[1]) | stop("Error: Can't Monitor")
+    every g := globalnames(Monitored) do{
+        funcType:= image(variable(g, Monitored))
+        funcType ?{
+            if find("procedure", funcType) then{
+                put(procList, g)
+            }
+            if find("function", funcType) then{
+                put(functList, g)
+            }
+        }
+    }
+    dirx := diry := 0 
+    dirz := -1
+    theta := 0.0
+    d2 := 0.0
+    epsilon := 0.0125
+    dirx := posx + sin(theta)
+    diry := posy
+    dirz := poszz - cos(theta)
+
+    # Draw the initial cubes, road, and water tower
+    initCity(roadY, roadZ)
+    WAttrib("texcoord=auto")
+    WAttrib("texmode=on", "texture=textures/window.gif")
+    evaltree(ProcMask ++ FncMask ++ E_MXevent, scat_callback, activation)
+    while Event() ~=== "q"
+end
+
+# Monitoring codes and controls 
+procedure scat_callback(new, old)
+    case &eventcode of {
+        E_Pcall:updateColors(new.node, old.node, 3, &time)
+        E_Psusp | E_Pret: updateColors(new.node, old.node, 4, &time)
+        E_Fcall: updateColors(new.node, old.node, 1, &time)
+        E_Fsusp | E_Fret: updateColors(new.node, old.node, 2, &time)
+        # Using E_MXevent as requested on assignment sheet
+        E_MXevent: {
+            case &eventvalue of {
+                "q" | "\033": endSummary()
+                Key_Up: updatecamera(0,0,0,epsilon)
+                Key_Down: updatecamera(0,0,0,-epsilon)
+                Key_Right: updatecamera(0,0,epsilon,0)
+	            Key_Left:  updatecamera(0,0,-epsilon,0)
+	            "w":  updatecamera(sin(theta)*epsilon*200, - cos(theta)*epsilon*200, 0)
+	            "s":updatecamera(- sin(theta)*epsilon*200, cos(theta)*epsilon*200, 0)
+                "p": delayOptions("plus")
+                "o": delayOptions("minus")
+                default: write("----------------Controls-----------------\nQ: Quit\nW: Move Forward\nS: Move Back\nArrow Buttons for Camera: Up, Down, Left, and Right \nP: Increase Delay time \nO: Decrease Delay time") 
+            }
+        }
+    }
+end
+
+procedure initCity(y, z)
+    &window := open("win","g","size=512,512","font=sans,32,bold", "canvas=hidden", "bg=33000,33000,33000") # 2D window is hidden
+    asc := WAttrib("ascent") 
+    every i := 1 to 16 do
+	    every j := 1 to 16 do {
+	        DrawString((j-1)*32, (i-1)*32+asc, char((i-1)*16+(j-1)))
+	    }
+    twidths:= table()
+    every i := 0 to 255 do twidths[char(i)] := TextWidth(char(i))
+    wfont := &window
+    &window:= open("HW6", "gl", "size=1920,1080", "bg=15000,15000,15000")
+    # Draw a sphere to represent a moon
+    WAttrib("texmode=on", "texture=textures/moon.gif")
+    DrawSphere(50, 150, -200, 8 )
+    WAttrib("texmode=off")
+    Texture(&window, wfont)
+    Texcoord(0.0,0.0, 0.0,1.0, 1.0,1.0, 1.0,0.0)
+    Eye(posx,posy,poszz,dirx,diry,dirz,0,1,0)
+    # Draw a cylinder to represent a water tower
+    Fg("white")
+    DrawCylinder(4,y,-218, 35 ,6.5,6.5)
+    Fg("black")
+    posxx:= startValue
+
+    # Cubes that will represent monitored buildings (procedures)
+    every i := 1 to *procList do{
+        WAttrib("texmode=off")
+        Fg("45000,45000,45000")
+        insert(fgTable, procList[i], *WindowContents()) # Insert color values into a table to change them later
+        insert(cubeBrightness, procList[i], 50000)
+        DrawCube(posxx, posyy, -poszz, (1.2)*2)
+        insert(cubePositionX, procList[i], posxx)       # Insert cube positions to stack them
+        insert(totalCubes, procList[i], 1)              # Insert 1 as the current number of cubes
+        WAttrib("light0=on, diffuse white")
+        myDrawString(posxx - (distanceApart/2)+0.7, posyy , -poszz+2, procList[i]) # Adjusted to fit the string in the cube
+        posxx:= posxx + distanceApart
+        insert(roadTable, "biggest", posxx)             # Last position to know how far to draw the road
+    }
+    # Road
+    WAttrib("texmode=off")
+    Fg("black")
+    DrawPolygon(0,y,z, roadTable["biggest"]+100,y,z, roadTable["biggest"]+100,y,10, 0,y ,10, 0,y,z)
+
+    # Cubes that will represent monitored buildings (functions)
+    if *functList > 0 then{
+        posxx:= -startValue
+        every i := 1 to *functList do{
+            WAttrib("texmode=off")
+            Fg("45000,45000,45000")
+            insert(fgTable, functList[i], *WindowContents())    # Insert color values into a table to change them later
+            DrawCube(posxx, posyy, -poszz, (1.2)*2)
+            insert(cubeBrightness, functList[i], 50000)
+            insert(cubePositionX, functList[i], posxx)          # Insert cube positions to stack them
+            insert(totalCubes, functList[i], 1)                 # Insert 1 as the current number of cubes
+            WAttrib("light0=on, diffuse white")
+            myDrawString(posxx - (distanceApart/2)+1.3, posyy, -poszz+2, functList[i]) # Adjusted to fit the string in the cube
+            posxx:= posxx-distanceApart
+            insert(roadTable, "smallest", posxx )
+        }
+        # Road
+        WAttrib("texmode=off")
+        DrawPolygon(0,y,z, roadTable["smallest"]-100,y,z, roadTable["smallest"]-100,y,10, 0,y ,10, 0,y,z)
+    }
+
+    # Cubes that represent buildings on the road as we spawn
+    Fg("45000,45000,45000")
+    rDist:= 190                                                 # This will change if the road distance changes
+    while rDist >= 30 do{
+        DrawCube(startValue, posyy, -rDist, (1.2)*2)
+        rDist:= rDist - 15
+    }
+    rDist:= 185                                                 # This will change if the road distance changes
+    while rDist >= 30 do{
+        DrawCube(-startValue, posyy, -rDist, (1.2)*2)
+        rDist:= rDist - 15
+    }
+
+    # Straight road that is seen as we spawn
+    WAttrib("texmode=off")
+    Fg("black")
+    DrawPolygon(-startValue+y,y,z, -startValue+y,y,z-200, startValue-y,y,z-200, startValue-y,y,z, -startValue+y,y,z)
+    DrawPolygon(-startValue+y,y,0, -startValue+y,y,0+200, startValue-y,y,0+200, startValue-y,y,0, -startValue+y,y,0)
+end
+
+# Code from Dr. Jeffery's text.icn example 
+procedure myDrawString(x,y,z,s)
+    WAttrib("texmode=on")
+    every c := !s do {
+        i := ord(c)
+        row := i/16
+        col := i%16
+        ht := 0.5
+        wd := 0.5 * real(twidths[c]) / 32
+        u1 := col*32.0/512
+        v1 := 1.0-(row+1)*32.0/512
+        u2 := col*32.0/512
+        v2 := 1.0-row*32.0/512
+        u3 := (col+(wd/ht))*32.0/512
+        v3 := 1.0-row*32.0/512
+        u4 := (col+wd/ht)*32.0/512
+        v4 := 1.0-(row+1)*32.0/512
+        Texcoord(u1,v1, u2,v2, u3,v3, u4,v4)
+        DrawPolygon(x-wd/2,y-ht/2,z, x-wd/2,y+ht/2,z,
+		    x+wd/2,y+ht/2,z, x+wd/2,y-ht/2,z)
+        x +:= wd + 0.1
+    }
+end
+
+# Update camera from Dr. J's example 
+procedure updatecamera(dx,dz,dtheta, dtheta2)
+    theta +:= \dtheta
+    d2 +:= \dtheta2
+    posx +:= \dx
+    poszz +:= \dz
+    dirx := posx + sin(theta)
+    diry := posy + sin(d2)
+    dirz := poszz - cos(theta)
+    Eye(posx,posy,poszz,dirx,diry,dirz,0,1,0)
+end
+
+# Pocedure to chnage the colors of the active cubes 
+# Cubes will get brighter as the number of calls  increases
+procedure updateColors(name, oldName, typeF, time)
+    if \name then{
+        name:= image(name)
+        name ? {
+            fName:=""
+            if (find("function", name)) then {
+                move(9)
+                fName:=tab(0)
+            }
+            if (find("procedure", name)) then {
+                move(10)
+                fName:=tab(0)
+            }
+            if (find("record constructor", name)) then {
+                move(19)
+                fName:=tab(0)
+            }
+        }
+
+        # Light up white for E_Fcall
+        if typeF= 1 then{    
+            insert(activeTable, fName, time)                        
+            clr:= fgTable[fName]
+            # If clr is not in fgTable
+            if /clr then{ 
+                # Added after bug was found were record constructors crashed the program 
+                insert(constructorTable, fName, time)
+            }
+            else {
+                sp:= (WindowContents()[clr])
+                brightness:= cubeBrightness[fName]
+                sp[4]:= brightness
+                sp[5]:= brightness
+                sp[6]:= brightness
+                Refresh()
+                if brightness < 65535 then
+                    insert(cubeBrightness, fName, brightness+500)
+            }
+        }
+
+        # Light up default gray for E_Fsusp or E_Fret
+        if typeF= 2 then{
+            clr:= fgTable[fName]
+            sp:= (WindowContents()[clr])
+            sp[4]:=45000
+            sp[5]:=45000	
+            sp[6]:= 45000
+            Refresh()
+        }
+
+        # Light up white for E_Pcall
+        if typeF= 3 then{ 
+            insert(activeTable, fName, time)
+            clr:= fgTable[fName]
+            sp:= (WindowContents()[clr])
+            brightness:= cubeBrightness[fName]
+            sp[4]:= brightness
+            sp[5]:= brightness
+            sp[6]:= brightness
+            Refresh()
+            if brightness < 65535 then
+                insert(cubeBrightness, fName, brightness+500)
+        }
+        
+        # Light up default gray for E_Psusp or E_Pret
+        if typeF= 4 then{
+            clr:= fgTable[fName]
+            sp:= (WindowContents()[clr])
+            sp[4]:=45000	
+            sp[5]:=45000	
+            sp[6]:= 45000
+            Refresh()
+        }
+        # Delay time can now be dynamicallly changed
+        delay(delayTime)
+    }
+
+        if \oldName then {
+        oldName:=image(oldName)
+        oldName ? {
+            oldF:=""
+            if (find("function", oldName)) then {
+                move(9)
+                oldF:=tab(0)
+            }
+            if (find("procedure", oldName)) then {
+                move(10)
+                oldF:=tab(0)
+            }
+           if (find("record constructor", oldName)) then {
+                move(19)
+                oldF:=tab(0)
+            }
+        }
+        # Light up default gray
+        if typeF = (3|4) then{     
+            if(totalTable[oldF] === &null) then{
+                insert(totalTable, oldF, time - activeTable[oldF])
+                addCube(totalTable[oldF], oldF)
+            } 
+            else{
+                insert(totalTable, oldF, totalTable[oldF]+(time - activeTable[oldF]))
+                addCube(totalTable[oldF], oldF)
+            }
+            clr:= fgTable[oldF]
+            sp:= (WindowContents()[clr])
+            sp[4]:=45000	
+            sp[5]:=45000
+            sp[6]:= 45000
+            Refresh()
+        }
+
+        # Light up default gray
+        if typeF = (1|2) then{
+            # Added after bug was found were record constructors crashed the program 
+            if (constructorTable[oldF]) === &null then {
+                if(totalTable[oldF] === &null) then{
+                    insert(totalTable, oldF, time - activeTable[oldF])
+                    addCube(totalTable[oldF], oldF)
+                } 
+                else{
+                    insert(totalTable, oldF, totalTable[oldF]+(time - activeTable[oldF]))
+                    addCube(totalTable[oldF], oldF)
+                }
+                clr:= fgTable[oldF]
+                sp:= (WindowContents()[clr])
+                sp[4]:=45000
+                sp[5]:=45000	
+                sp[6]:= 45000
+                Refresh()
+            }
+        }
+    }
+end
+
+# Procedure to continue stacking cubes amd make the buildings grow
+# Default is 100ms 
+procedure addCube(totalTime, FunctionName)
+    if totalTime > ((totalCubes[FunctionName]-1)*cubeTime) then{
+        difference:= totalTime-(totalCubes[FunctionName]-1)*cubeTime
+        if difference >= cubeTime*2 then{
+            drawNumb:= 1
+            difference:= difference - cubeTime
+            while difference >= cubeTime do{
+                drawNumb:= drawNumb + 1
+                difference:= difference - cubeTime
+            }
+            every i:= 1 to drawNumb do {
+                DrawCube(cubePositionX[FunctionName], (1.2*2)*(totalCubes[FunctionName]+1), -posz2, (1.2)*2)
+                insert(totalCubes, FunctionName, totalCubes[FunctionName]+1)
+            }
+        }
+        # Draw single cube 
+        else if difference > cubeTime then{
+            DrawCube(cubePositionX[FunctionName], (1.2*2)*(totalCubes[FunctionName]+1), -posz2, (1.2)*2)
+            insert(totalCubes, FunctionName, totalCubes[FunctionName]+1)
+        }
+    }
+end
+
+# Prints the total time spent on each procedure when the user quits
+procedure endSummary()
+    write("-----------------------------------------")
+    write("Functions (time in ms):")
+    every i:= 1 to *functList do {
+        currentF:= functList[i]
+        write(currentF,"\t\t\t", totalTable[currentF])
+    }
+
+    write("\nProcedures (time in ms):")
+    every i:= 1 to *procList do {
+        currentP:= procList[i]
+        write(currentP,"\t\t\t", totalTable[currentP])
+    }
+    write("-----------------------------------------")
+    stop()
+end
+
+# Incease or decrease the delay time 
+procedure delayOptions(action)
+    if action === "plus" then delayTime:= delayTime + 50
+    if (action === "minus" & delayTime > 0 ) then delayTime:= delayTime - 50
+end

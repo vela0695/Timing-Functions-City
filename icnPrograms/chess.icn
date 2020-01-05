@@ -1,0 +1,1102 @@
+# icinit.icn -- global initialization routines for ichess
+# Bart Parliman
+
+#record MoveRec(fromsq, tosq, captured, castleChange, promotedto, enpassant)
+global MoveRec
+
+global Empty, Edge, Pieces, WhitePieces, BlackPieces, Board, EmptyBoard
+global Quit, Check, Mate, MoveMade, Side, OtherSide, BorQ, RorQ
+
+global Ply, PlyLimit, PlyMax, PlyAbsMax, BestMove, NullMove, Nodes
+global White, Black, Other
+global King, Queen, Rook, Bishop, Knight, Pawn
+
+global ComputerSide, MaterialScore, PieceCost
+global PromoCost, WhitePromotions, BlackPromotions
+global Enpassant, BoardEnpassant
+
+global CastleKS, CastleQS, CastleStack, Candidates
+global Lcase, Ucase, Debug, DebugWrite, LimitSearch
+
+
+procedure Initialize()
+
+ DebugWrite := 1
+ Debug := &null
+
+ Lcase := string(&lcase)
+ Ucase := string(&ucase)
+ 
+ Empty := " "
+ Edge := "*"
+ 
+ White := 1
+ Black := 2
+ Other := [2, 1]
+ 
+ King := "Kk"
+ Queen := "Qq"
+ Rook := "Rr"
+ Bishop := "Bb"
+ Knight := "Nn"
+ Pawn := "Pp"
+ 
+ Pieces := list(2)
+ Pieces[White] := WhitePieces := 'KQRBNP'
+ Pieces[Black] := BlackPieces := 'kqrbnp'
+ 
+ BorQ := list(2)
+ BorQ[White] := "BQ"
+ BorQ[Black] := "bq"
+
+ RorQ := list(2)
+ RorQ[White] := "RQ"
+ RorQ[Black] := "rq"
+ 
+ emptyRow := Edge || repl(Empty, 8) || Edge
+ EmptyBoard := repl(Edge, 20) || repl(emptyRow, 8) || repl(Edge, 20)
+ 
+ PlyMax := 2
+ PlyAbsMax := 25
+ 
+ NullMove := MoveRec(1, 1, Edge)
+ BestMove := list(PlyAbsMax+1)
+ Enpassant := list(PlyAbsMax+2, 0)
+ 
+ LimitSearch := 1
+ 
+end
+
+
+procedure InitPieceCost()
+
+ local mult, piece
+
+ if Side = Black then
+  mult := 1
+ else
+  mult := -1
+
+ PieceCost := table(0)
+ 
+ PieceCost["K"] := mult * 9999
+ PieceCost["Q"] := mult * 900
+ PieceCost["R"] := mult * 500
+ PieceCost["B"] := mult * 325
+ PieceCost["N"] := mult * 300
+ PieceCost["P"] := mult * 100
+ PieceCost["k"] := -mult * 9999
+ PieceCost["q"] := -mult * 900
+ PieceCost["r"] := -mult * 500
+ PieceCost["b"] := -mult * 325
+ PieceCost["n"] := -mult * 300
+ PieceCost["p"] := -mult * 100
+ 
+ PromoCost := table(0)
+ 
+ WhitePromotions := "QNRB"
+ every piece := !WhitePromotions do
+  PromoCost[piece] := PieceCost[piece] - PieceCost["P"]
+  
+ BlackPromotions := "qnrb"
+ every piece := !BlackPromotions do
+  PromoCost[piece] := PieceCost[piece] - PieceCost["p"]
+ 
+end
+
+
+procedure NewGame()
+
+ Board := EmptyBoard
+ Board[Square(1,1)+:8] := "RNBQKBNR"
+ Board[Square(2,1)+:8] := repl("P", 8)
+ Board[Square(7,1)+:8] := repl("p", 8)
+ Board[Square(8,1)+:8] := "rnbqkbnr"
+ 
+ Side := White
+ OtherSide := Other[Side]
+ 
+ InitPieceCost()
+ EvalMaterial(Board)
+ 
+ BoardEnpassant := 0
+ 
+ CastleStack := list()
+ CastleQS := list(2, 0)
+ CastleKS := list(2, 0) 
+ 
+ if (Board[Square(1,5)] === "K") then {
+  if Board[Square(1,1)] === "R" then {
+   CastleQS[White] := Square(1,1)
+  }
+  if Board[Square(1,8)] === "R" then {
+   CastleKS[White] := Square(1,8)
+  }
+ }
+ if (Board[Square(8,5)] === "k") then {
+  if Board[Square(8,1)] === "R" then {
+   CastleQS[Black] := Square(8,1)
+  }
+  if Board[Square(8,8)] === "R" then {
+   CastleKS[Black] := Square(8,8)
+  }
+ }
+
+end
+
+
+procedure NewMove()
+
+ InitPieceCost()
+ EvalMaterial(Board)
+ CastleStack := list()
+ 
+ every !Enpassant := 0
+ Enpassant[1] := BoardEnpassant
+ 
+ Check := (SquareAttacked(Board, find(King[Side], Board), Side) & 1) | &null
+ Nodes := 0
+ Ply := 0
+ BestMove := list(PlyAbsMax+1)
+ 
+ Candidates := table()
+
+end
+
+# IChess main procedure
+# Bart Parliman - CSc 550
+#
+
+record MoveRec(fromsq, tosq, captured, castleChange, promotedto, enpassant)
+
+global Empty, Edge, Pieces, WhitePieces, BlackPieces, Board, EmptyBoard
+global Quit, Check, Mate, MoveMade, Side, OtherSide, BorQ, RorQ
+
+global Ply, PlyLimit, PlyMax, PlyAbsMax, BestMove, NullMove, Nodes
+global White, Black, Other
+global King, Queen, Rook, Bishop, Knight, Pawn
+
+global ComputerSide, MaterialScore, PieceCost
+global PromoCost, WhitePromotions, BlackPromotions
+global Enpassant, BoardEnpassant
+
+global CastleKS, CastleQS, CastleStack, Candidates
+global Lcase, Ucase, Debug, DebugWrite, LimitSearch
+
+global VerifyMode
+
+
+procedure main()
+
+ write("Icon Chess by Bart Parliman")
+ 
+ Initialize()
+ NewGame()
+ 
+ while /Quit do { 
+ 
+  GetCommand()
+  
+  if  /Quit & /Mate & \MoveMade & /VerifyMode then
+   SelectMove()
+ }
+ 
+end
+
+
+procedure GetCommand()
+
+ NewMove()
+ WriteBoard(Board)
+ MoveMade := &null
+ 
+ repeat {
+  writes("\nEnter a move or command> ")
+  line := tolower(read()) | "quit"
+  
+  case line of {
+  
+   "quit": {
+    Quit := 1
+    break
+   }
+   "board": {
+    WriteBoard(Board)
+   }
+   "help" | "man" | "?": {
+    write("You may enter a move, or one of the commands below...")
+    write("board  -- Display the board.")
+    write("help   -- Print a list of commands.")
+    write("load   -- Load a previously saved game.")
+    write("moves  -- Display a list of valid moves.")
+    write("new    -- Start a new game.")
+    write("save   -- Save the game in progress to disk.")
+    write("switch -- Switch sides.")
+    write("verify -- Toggle verify mode.  If On, you enter all moves.")
+    write("quit   -- Quit the program.")
+   
+   }
+   "load": {
+    LoadGame() | NewGame()
+   }
+   "save": {
+    SaveGame()
+   }
+   "moves": {
+    every Move := GenMoves(Board) do {
+     if child := MakeMove(Board, Side, Move) then {
+      write(MoveStr(Move))
+     } else {
+      if \Debug then {
+       write(MoveStr(Move), " (illegal)")
+      }
+     }
+     UndoMove(Move, Side)
+    } 
+   }
+   "new": {
+    NewGame()
+    break
+   }
+   "ply": {
+    writes("Ply Depth [",PlyMax,"]> ")
+    newply := (read() | fail)
+    newply ? ((PlyMax := integer(tab(many(&digits)))) & pos(0))
+    write("Ply Depth: ", PlyMax)
+   }
+   "switch": { 
+    Side :=: OtherSide
+    MoveMade := 1
+   }
+   "verify": {
+    if \VerifyMode then {
+     VerifyMode := &null
+     write("Verify Mode: Off")
+    } else {
+     VerifyMode := 1
+     write("Verify Mode: On")
+    }
+   }
+   "trace": {
+    if &trace = 0 then {
+     write("Trace: On.")
+     &trace := -1
+    } else {
+     write("Trace: Off.")
+     &trace := 0
+    }
+   }
+   "debug": {
+    if /Debug then {
+     DebugWrite := write
+     Debug := 1
+     write("Debugging: On")
+    } else {
+     DebugWrite := 1
+     Debug := &null
+     write("Debugging: Off")
+    }
+   }
+   default: {
+    if *line > 0 then {
+     if Move := ParseMove(line) then {
+      if child := MakeMove(Board, Side, Move) then {
+       Board := child
+       Side :=: OtherSide
+       MoveMade := 1
+       BoardEnpassant := Enpassant[1]
+       break;
+      } else {
+       UndoMove(Move, Side)
+       write("Illegal Move.")
+      }
+     } else {
+      write("Unknown command or illegal move")
+     }
+    }
+   }
+  }
+ }
+
+end
+
+
+procedure SelectMove()
+
+ NewMove() # setup globals for new search
+ 
+ collect() # probably a good time to do this so it doesn't get done later
+    # in the middle of the search
+
+ every PlyLimit := 1 to PlyMax do { # perform iterated searches
+  Side :=: OtherSide
+  Ply := 0
+  value := Search(Board, 1, 9999)   # search this board upto limit
+  Side :=: OtherSide
+  DebugWrite("Iteration: ", PlyLimit, "  Nodes Searched: ", Nodes, "  Value: ",value)
+  DebugWrite("Best Candidate: ", MoveStr(\BestMove[1]))
+  if PlyLimit = 1 then {   # if first time...
+   if *Candidates <= 1 then {  # dont search any deeper if only one (or no) valid move
+    break
+   }
+  }
+ }
+ 
+ if *Candidates >= 1 then {
+  movelist := sort(Candidates, 4)
+  
+  # locate highest valued candidate
+  # we check to make sure though
+  
+  while Move := 2(pull(movelist), pull(movelist)) do { # get highest valued move (rightmost)
+   if child := MakeMove(Board, Side, Move) then {
+    Side :=: OtherSide
+    Board := child
+    BoardEnpassant := Enpassant[1]
+    moveFound := 1
+    write("\nMy move is: ", MoveStr(Move),"\n")
+    break
+   } else {
+    UndoMove(Move, Side)
+   }
+  }
+ }
+ 
+ if /moveFound then {   # no valid moves found -- signal mate (check or stale)
+  Mate := 1
+  if \Check then
+   write("Checkmate.  You win.")
+  else
+   write("Stalemate.  Game Drawn.")
+ }
+
+end
+
+
+procedure Evaluate(board)
+
+ return MaterialScore
+
+end
+
+
+procedure EvalMaterial(board)
+
+ MaterialScore := 0
+ 
+ every MaterialScore +:= PieceCost[!board]
+ 
+ return MaterialScore
+end
+# icmoves.icn -- move generation routines for ichess
+# Bart Parliman
+
+
+#record MoveRec(fromsq, tosq, captured, castleChange, promotedto, enpassant)
+global MoveRec
+
+global Empty, Edge, Pieces, WhitePieces, BlackPieces, Board, EmptyBoard
+global Quit, Check, Mate, MoveMade, Side, OtherSide, BorQ, RorQ
+
+global Ply, PlyLimit, PlyMax, PlyAbsMax, BestMove, NullMove, Nodes
+global White, Black, Other
+global King, Queen, Rook, Bishop, Knight, Pawn
+
+global ComputerSide, MaterialScore, PieceCost
+global PromoCost, WhitePromotions, BlackPromotions
+global Enpassant, BoardEnpassant
+
+global CastleKS, CastleQS, CastleStack, Candidates
+global Lcase, Ucase, Debug, DebugWrite, LimitSearch
+
+
+procedure GenMoves(board, searchType)
+
+ # Generates moves for the current side.
+ # if searchType is 1, only capture moves are generated
+ # otherwise all moves are generated
+ # Moves are stored in a list and returned one at a time.
+ # Captures are returned first (since they are usually more important
+ 
+ local movelist, Move
+ 
+ movelist := list()
+ 
+ if Ply > 0 then {
+  every Move := PieceMove(board, board ? upto(Pieces[Side]), Side) do {
+   if Move.captured ~=== Empty then {
+    push(movelist, Move)
+   } else if /searchType then {
+    put(movelist, Move)
+   }
+  }
+  
+  while Move := pop(movelist) do {
+   suspend Move
+  }
+
+ } else {
+  if /Candidates then {
+   Candidates := table()
+  }
+  if *Candidates = 0 then {
+   every Move := PieceMove(board, board ? upto(Pieces[Side]), Side) do {
+    Candidates[Move] := PieceCost[Move.captured]
+    Candidates[Move] +:= PromoCost[\Move.promotedto]
+   }
+  }
+  movelist := sort(Candidates, 4)  # sort candidates by prelimary score
+  
+  #take the highest candidate by getting the rightmost element
+  
+  while Move := 2(pull(movelist), pull(movelist)) do {
+   suspend Move  # pull value & discard, pull move & return
+  }
+ }
+
+end
+
+
+procedure MakeMove(board, side, Move)
+
+ child := board
+ 
+ child[Move.tosq] := (piece := child[Move.fromsq])
+ child[Move.fromsq] := Empty
+ 
+ MaterialScore +:= PieceCost[Move.captured]
+ MaterialScore +:= PromoCost[\Move.promotedto]
+
+ if \Move.castleChange then {
+  push(CastleStack, CastleKS[side])
+  push(CastleStack, CastleQS[side])
+ }
+ 
+ case piece of {  # handle special case moves
+ 
+  "P" | "p": {
+   if \Move.enpassant then            # if enpassant capture
+    child[Move.tosq + (((piece === "P") & -10) | 10)] := Empty # clear captured pawn
+ 
+   if abs(Move.tosq - Move.fromsq) = 20 then  # if pawn moved up 2 squares...
+    Enpassant[Ply + 2] := Move.tosq    # flag enpassant as being legal
+  }
+  
+  "R" | "r": { # handle castle change here
+   if CastleQS[side] = Move.fromsq then
+    CastleQS[side] := 0
+   else if CastleKS[side] = Move.fromsq then
+    CastleKS[side] := 0
+  }
+  
+  "K" | "k": {
+   CastleQS[side] := CastleKS[side] := 0
+   if (Move.tosq - Move.fromsq) = 2 then {  # king side castling
+    if SquareAttacked(child, Move.tosq-1, side) then {
+     fail  # illegal castle -- intermediate square is attacked
+    }
+    child[Move.tosq-1] := child[Move.tosq+1]
+    child[Move.tosq+1] := Empty
+   } else if (Move.tosq - Move.fromsq) = -2 then {  # queen side castling
+    if SquareAttacked(child, Move.tosq+1, side) then {
+     fail  # illegal Move -- intermediate square is attacked
+    }
+    child[Move.fromsq+1] := child[Move.fromsq-2]
+    child[Move.fromsq-2] := Empty
+   }
+  }
+ 
+ }
+ 
+ # see if king is in check even though a move has been made
+ # if so, the move is illegal
+ 
+ if SquareAttacked(child, find(King[side], child), side) then {
+  fail  # illegal move -- same side in check even after moving
+ }
+ 
+ return child
+
+end
+
+
+procedure UndoMove(Move, side)
+
+ MaterialScore -:= PieceCost[Move.captured]
+ MaterialScore -:= PromoCost[\Move.promotedto]
+ 
+ Enpassant[Ply + 2] := 0
+ 
+ if \Move.castleChange then {
+  CastleQS[side] := pop(CastleStack)
+  CastleKS[side] := pop(CastleStack)
+ }
+
+end
+
+procedure PawnMove(board, pos, side)
+
+ local square, enemy, piece
+ 
+ enemy := Other[side]
+ 
+ if side = White then {
+ 
+  every square := pos + (9 | 11) do {  # test captures first
+   if any(Pieces[enemy], piece := board[square]) then {
+    if square < 81 then
+     suspend MoveRec(pos, square, piece)
+    else 
+     suspend MoveRec(pos, square, piece, &null, !WhitePromotions)  # handle pawn promotions
+   }
+  }
+  
+  if board[square := pos + 10] === Empty then {  # move pawn 1 move ahead
+   if square < 81 then
+    suspend MoveRec(pos, square, Empty)
+   else 
+    suspend MoveRec(pos, square, Empty, &null, !WhitePromotions)  # handle pawn promotions
+
+   if (pos <= 40) & (board[square := pos + 20] === Empty) then {  # initial 2 sq's ahead
+    suspend MoveRec(pos, square, Empty)
+   } 
+  }
+  
+  if pos = (Enpassant[Ply+1] + (1 | -1)) then {
+   square := Enpassant[Ply+1] + 10
+   suspend MoveRec(pos, square, Empty, &null, &null, 1)
+  }
+  
+ } else {  # generate black pawn moves -- same code, offsets are different
+ 
+  every square := pos - (9 | 11) do {
+   if any(Pieces[enemy], piece := board[square]) then {
+    if square > 30 then
+     suspend MoveRec(pos, square, piece)
+    else 
+     suspend MoveRec(pos, square, piece, &null, !BlackPromotions) # handle pawn promotions
+   }
+  }
+  
+  if board[square := pos - 10] === Empty then {
+   if square > 30 then
+    suspend MoveRec(pos, square, Empty)
+   else 
+    suspend MoveRec(pos, square, Empty, &null, !BlackPromotions)  # handle pawn promotions
+
+   if (pos >= 80) & (board[square := pos - 20] === Empty) then {
+    suspend MoveRec(pos, square, Empty)
+   }
+  }
+    
+  if pos = (Enpassant[Ply+1] + (1 | -1)) then {
+   square := Enpassant[Ply+1] - 10
+   suspend MoveRec(pos, square, Empty, &null, &null, 1)
+  }
+  
+ }
+
+end
+
+
+procedure KnightMove(board, pos, side)
+
+ local square, okset
+ 
+ okset := Pieces[Other[side]] ++ cset(Empty)
+
+ every square := (pos + (21 | 19 | 12 | 8 | -8 | -12 | -19 | -21)) do {
+  if any(okset, board[square]) then {
+   suspend MoveRec(pos, square, board[square])
+  }
+ }
+
+end
+
+
+procedure KingMove(board, pos, side)
+
+ local square, okset
+ 
+ okset := Pieces[Other[side]] ++ cset(Empty)
+
+ every square := pos + (9 | 10 | 11 |  1 | -1 | -9 | -10 | -11) do {
+  if any(okset, board[square]) then {
+   suspend MoveRec(pos, square, board[square], 1)  # set castle change flag
+  }
+ }
+ 
+ # Now generate castle moves
+ 
+ if side = White then {
+  if CastleKS[side] & (board ? { tab(Square(1,5)) & ="K  R" }) then {
+   suspend MoveRec(pos, pos + 2, Empty, 1)
+  }
+  
+  if CastleQS[side] & (board ? { tab(Square(1,1)) & ="R   K" }) then {
+   suspend MoveRec(pos, pos - 2, Empty, 1)
+  }
+ } else {  # Black Side
+  if CastleKS[side] & (board ? { tab(Square(8,5)) & ="k  r" }) then {
+   suspend MoveRec(pos, pos + 2, Empty, 1)
+  }
+  
+  if CastleQS[side] & (board ? { tab(Square(8,1)) & ="r   k" }) then {
+   suspend MoveRec(pos, pos - 2, Empty, 1)
+  }
+ }
+ 
+end
+
+
+procedure PieceOffset(piece)
+
+ case piece of {
+  "B" | "b":    suspend (9 | 11 | -9 | -11)
+  "R" | "r":    suspend (10 | 1 | -1 | -10)
+  "Q" | "K" | "q" | "k": suspend (9 | 10 | 11 |  1 | -1 | -9 | -10 | -11)
+  "N" | "n":    suspend (21 | 19 | 12 | 8 | -8 | -12 | -19 | -21)
+  "P":     suspend (9 | 11)
+  "p":     suspend (-9 | -11)
+ }
+
+end
+
+procedure PieceMove(board, pos, side, piece)
+
+ local square, offset, newpiece, castleChanged
+
+ if /piece then {
+  piece := map(board[pos], Lcase, Ucase)
+ }
+
+ case piece of {
+ 
+  "P": suspend PawnMove(board, pos, side)
+  "N": suspend KnightMove(board, pos, side)
+  "K": suspend KingMove(board, pos, side)
+  
+  default: {  # sweep piece -- Bishop, Rook, Queen
+   castleChanged := (piece === Rook[side])
+   every square := SweepSquares(board, pos, side, piece) do {
+    suspend MoveRec(pos, square, board[square], castleChanged)
+   }
+  }
+ }
+
+end
+
+procedure SweepSquares(board, pos, side, piece)
+
+ local square, offset, newpiece
+
+ every offset := PieceOffset(piece) do {
+  square := pos
+  while newpiece := board[square +:= offset] do {
+   if (newpiece === Empty) then {
+    suspend square 
+   } else {
+    # we found a piece or fell off the edge
+    # we must break out of loop
+    # if a capture, suspend it first
+     
+    if any(Pieces[Other[side]], newpiece) then {
+     suspend square 
+    }
+    break
+   }
+  }
+ }
+
+end
+# icsearch.icn -- tree search routines for ichess
+# Bart Parliman
+
+#record MoveRec(fromsq, tosq, captured, castleChange, promotedto, enpassant)
+global MoveRec
+
+global Empty, Edge, Pieces, WhitePieces, BlackPieces, Board, EmptyBoard
+global Quit, Check, Mate, MoveMade, Side, OtherSide, BorQ, RorQ
+
+global Ply, PlyLimit, PlyMax, PlyAbsMax, BestMove, NullMove, Nodes
+global White, Black, Other
+global King, Queen, Rook, Bishop, Knight, Pawn
+
+global ComputerSide, MaterialScore, PieceCost
+global PromoCost, WhitePromotions, BlackPromotions
+global Enpassant, BoardEnpassant
+
+global CastleKS, CastleQS, CastleStack, Candidates
+global Lcase, Ucase, Debug, DebugWrite, LimitSearch
+
+
+procedure Search(board, maxNode, pruneValue)
+
+ local child, value, searchType, incheck, skipSearch
+ local Move, newvalue, nextNode
+ 
+ Nodes +:= 1   # increment node count
+ 
+ if \Debug & ((Nodes % 10) = 0) then {
+  writes(".")
+  if (Nodes % 500) = 0 then {
+   write()
+  }
+ }
+ Side :=: OtherSide # reverse side to move
+  
+ if Ply < PlyAbsMax then {
+  # see if we are in check currently
+  
+  incheck := SquareAttacked(board, find(King[Side], board), Side) & 1 
+  
+  if \maxNode then {  # this is a max node
+   value := -9999
+  } else {    # min node
+   value := 9999 
+   nextNode := 1 
+  }
+  
+  if Ply >= PlyLimit then {
+   if \LimitSearch then {  # if true, don't search captures after limit
+    skipSearch := 1
+    searchType := 1  # let evaluation succeed
+   } else { # search captures after limit (if not in check)
+    if /incheck then {
+     searchType := 1  # after iteration limit, check captures only
+     value := MaterialScore
+    }
+    if PlyLimit >= 1 then {  # for first iteration, don't search too far
+     skipSearch := 1
+    }
+   }
+  }
+
+  validMoves := 0
+  
+  
+  if /skipSearch then {
+   every Move := GenMoves(board, searchType) do {
+    if child := MakeMove(board, Side, Move) then { # succeeds if move is legal
+    
+     #DebugWrite(right(Ply,2), ":      ", repl("--",Ply+1), MoveStr(Move))
+     
+     Ply +:= 1
+     newvalue := Search(child, nextNode, value)
+     Ply -:= 1
+     
+     #DebugWrite(right(Ply,2), ": ", right(newvalue,5), repl("==",Ply+1), MoveStr(Move))
+     
+     if Ply = 0 then {
+      if member(Candidates, Move) then {
+       Candidates[Move] := newvalue
+      }
+     }
+     
+     UndoMove(Move, Side)
+     
+     validMoves +:= 1
+     
+     if \maxNode then {    # remember max value for this node
+      if newvalue > value then {  # is this move better than ones we've seen?
+       value := newvalue  # if so, remember this move
+       BestMove[Ply+1] := Move
+       #if \Debug then {
+       # writes(right(Nodes,5), ": ")
+       # every writes(MoveStr(BestMove[1 to (Ply+1)]), " ")
+       # write()
+       #}
+       if value >= pruneValue then {  # is it good enough to prune this node?
+        #DebugWrite(right(Ply,2), ": PRUNE", repl("--",Ply+1))
+        break
+       }
+      }
+     } else {      # this is a min node - get min value
+      if newvalue < value then {  # is this move better than ones we've seen?
+       value := newvalue  # if so, remember this move
+       BestMove[Ply+1] := Move
+       #if \Debug then {
+       # writes(right(Nodes,5), ": ")
+       # every writes(MoveStr(BestMove[1 to (Ply+1)]), " ")
+       # write()
+       #}
+       if value <= pruneValue then {  # is it good enough to prune this node?
+        #DebugWrite(right(Ply,2), ": PRUNE", repl("--",Ply+1))
+        break
+       }
+      }
+     }
+    
+    } else { # illegal move
+    
+     if (Ply = 0) & \Candidates then {
+      if member(Candidates, Move) then {   # remove illegal candidate moves
+       delete(Candidates, Move)
+      }
+     }
+     UndoMove(Move, Side)  # we must undo any side affects even if illegal
+    }
+   }
+  }
+  
+  if validMoves = 0 then {   # if we've reached a leaf node (no moves found)
+           # we must score this position...
+           
+   if \searchType then {   # if a capture search was being performed...
+    value := Evaluate(board)  # we evaluate this node (it is a quiet leaf)
+    
+   } else {      # check/stale mate condition reached
+   
+    if /incheck then {   # no moves found, and not in check...
+     value := 0    # the game is a stalemate
+    } # "else" not needed -- max check mate value has been assigned (above)
+    
+   }
+  }
+ 
+ } else { # can't physically search any deeper -- we must evaluate now
+  value := Evaluate(board)
+ }
+ 
+ Side :=: OtherSide # reverse effects
+ 
+ return value
+end
+
+procedure SquareAttacked(board, pos, side)
+
+ local enemy
+ 
+ enemy := Other[side]
+
+ if board[pos + PieceOffset(Pawn[side])] === Pawn[enemy] then 
+  return 1
+ 
+ if find(board[SweepSquares(board, pos, side, "B")], BorQ[enemy]) then
+  return 1
+  
+ if find(board[SweepSquares(board, pos, side, "R")], RorQ[enemy]) then
+  return 1
+ 
+ if board[pos + PieceOffset("N")] === Knight[enemy] then
+  return 1
+ 
+ if board[pos + PieceOffset("K")] === King[enemy] then
+  return 1
+
+end
+# icutil.icn -- utility routines for ichess
+# Bart Parliman
+
+#record MoveRec(fromsq, tosq, captured, castleChange, promotedto, enpassant)
+global MoveRec
+
+global Empty, Edge, Pieces, WhitePieces, BlackPieces, Board, EmptyBoard
+global Quit, Check, Mate, MoveMade, Side, OtherSide, BorQ, RorQ
+
+global Ply, PlyLimit, PlyMax, PlyAbsMax, BestMove, NullMove, Nodes
+global White, Black, Other
+global King, Queen, Rook, Bishop, Knight, Pawn
+
+global ComputerSide, MaterialScore, PieceCost
+global PromoCost, WhitePromotions, BlackPromotions
+global Enpassant, BoardEnpassant
+
+global CastleKS, CastleQS, CastleStack, Candidates
+global Lcase, Ucase, Debug, DebugWrite, LimitSearch
+
+
+procedure SaveGame()
+
+ writes("Filename of saved game> ")
+ name := read() | fail
+ if name ~=== "" then {
+  file := open(name, "w") | (write("Can't open ", name) & fail)
+  write(file, "ichess")
+  write(file, Board)
+  write(file, Side)
+  write(file, BoardEnpassant)
+  every write(file, CastleKS[White | Black] | CastleQS[White | Black])
+  write(file, "!")
+ }
+ 
+ close(file)
+ 
+ return 1
+end
+
+procedure LoadGame()
+
+ CastleStack := list()
+ CastleQS := list(2, 0)
+ CastleKS := list(2, 0) 
+ 
+ writes("Filename of saved game> ")
+ name := read() | fail
+ if name ~=== "" then {
+  file := open(name, "r") | (write("Can't open ", name) & fail)
+  line := read(file) | (write("Can't read from ", name) & close(file) & fail)
+  (line ? ="ichess") | (write("Not a saved game file.") & close(file) & fail)
+  Board := read(file)
+  Side := integer(read(file))
+  BoardEnpassant := integer(read(file))
+  every (CastleKS[White | Black], CastleQS[White | Black]) := read(file)
+  (read(file) ? ="!") | (write("Invalid saved game file format.") & close(file) & fail)
+ }
+ 
+ close(file)
+ 
+ OtherSide := Other[Side]
+ return 1
+end
+
+
+procedure ParseMove(line)
+
+ columns := "abcdefgh"
+
+ if line ? {
+  (tab(upto(columns)) \ 1) &
+  (fromcol:= find(move(1), columns)) &
+  (fromrow := integer(move(1))) &
+  (tab(upto(columns)) \ 1) &
+  (tocol := find(move(1), columns)) &
+  (torow := integer(move(1))) &
+  (tab(many(' \t')) | move(0)) & 
+  pos(0)
+ } then {
+  sqfrom := Square(fromrow, fromcol)
+  sqto := Square(torow, tocol)
+  every Move := GenMoves(Board) do {
+   if (sqfrom = Move.fromsq) & (sqto = Move.tosq) then {
+    if \Move.promotedto then {
+     while /promote do {
+      writes("Enter the piece to promote to (Q,R,N,B): ")
+      response := read() | fail
+      tolower(response) ? {
+       (promote := =!"qrnb") & pos(0)
+      }
+     }
+     if promote == tolower(Move.promotedto) then
+      return Move
+    } else {
+     return Move
+    }
+   }
+  
+  }
+ }
+ 
+end
+
+
+procedure Square(row, col)
+
+ return (row * 10) + col + 11
+ 
+end
+
+
+procedure Row(square)
+
+ return integer(square / 10) - 1
+
+end
+
+
+procedure Col(square)
+
+ return (square - 1) % 10
+
+end
+
+
+procedure WriteBoard(board)
+
+ static emptyOut, pieceTable
+ 
+ initial {
+  emptyOut := ["   ", "---"]
+  
+  pieceTable := table()
+  every piece := !string(WhitePieces) do
+   pieceTable[piece] := "[" || piece || "]"
+  every piece := !string(BlackPieces) do
+   pieceTable[piece] := "<" || piece || ">"
+ 
+ }
+ sqcolor := 0
+ write()
+ 
+ every row := 8 to 1 by -1 do {
+  
+  writes(row, " | ")
+  every piece := board[Square(row, 1 to 8)] do {
+
+   if piece === Empty then {
+    writes(emptyOut[sqcolor+1]," ")
+   } else {
+    writes(pieceTable[piece], " ")
+   }
+    
+   sqcolor := 1 - sqcolor
+  }
+  
+  write()
+  sqcolor := 1 - sqcolor
+ 
+ }
+ 
+ write()
+ writes("    ")
+ every writes(" ", !&lcase, "  ") \ 8
+ write()
+ write()
+ 
+end
+
+procedure GetRow(row, board)
+
+ return board[Square(row,1)+:8]
+ 
+end
+
+procedure MoveStr(Move)
+
+ local midstr
+
+ if Move.captured ~=== Empty then {
+  midstr := "x"
+ } else {
+  midstr := "-"
+ }
+  
+ return SquareStr(Move.fromsq) || midstr || SquareStr(Move.tosq)
+
+end
+
+procedure SquareStr(square)
+
+ return Lcase[Col(square)] || Row(square)
+
+end
+
+
+procedure tolower(s)
+
+ return map(s, Ucase, Lcase)
+ 
+end
+
+
+procedure DebugBoard(board)
+
+ if \Debug then {
+   every pos := 111 to 1 by -10 do {
+    writes(right(pos,3))
+    writes(": ",board[pos+:10]," :")
+    write()
+   }
+ }
+ 
+end

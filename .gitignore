@@ -1,0 +1,5 @@
+# Discard all of the executables 
+*.exe
+
+# Discard files that get generated and linked 
+*.u

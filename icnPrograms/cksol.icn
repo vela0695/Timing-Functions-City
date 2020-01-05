@@ -1,0 +1,53 @@
+global pset
+global games
+procedure main (args)
+write := writes := 1
+pset := cset(&ascii[34:128])
+rounds := []
+games := []
+text := ""
+if *args > 0 then
+f := open(args[1]) | stop("can't open ",args[1])
+else
+f := &input
+while line := read(f) do
+if line[1] ~== "[" & upto(pset,line) then {
+put(rounds,line)
+text ||:= line
+}
+np := *(text ** pset)
+every 1 to 2 do {
+write(np," players, ",*rounds," rounds")
+every i := 1 to *rounds do
+round(i,rounds[i])
+write("total of ",*games," matches")
+every i := 1 to *games do
+every j := i+1 to *games do
+cktwice(games[i],games[j])
+}
+end
+procedure round(n,line)
+g := []
+cs := ''
+line ?
+while tab(upto(pset)) do {
+game := tab(many(pset))
+put(games,game)
+put(g,game)
+cs ++:= game
+}
+write("round ",n,": ",*cs," players, ",*g," courts")
+if *cs < 4 * *g then {
+writes("% duplicate appearances by: ")
+every c := !cs do line ?
+if find(c) ~= find(c) then
+writes(c)
+write()
+}
+return
+end
+procedure cktwice(g1,g2)
+if *(g1 ++ g2) < (*g1 + *g2 - 1) then
+write("% duplicate meetings: ",g1," ",g2)
+return
+end

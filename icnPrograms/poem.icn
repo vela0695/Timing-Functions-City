@@ -1,0 +1,106 @@
+record rule1__(alts)
+procedure rule1_()
+   suspend {
+      rule1__([qual_() , =" " , noun_() , =" " , tverb_() , =" " , object_() , =";"])
+      }
+end
+
+record rule2__(alts)
+procedure rule2_()
+   suspend {
+      rule2__([noun_() , =" " , iverb_() , =", " , clause_() , ="."])
+      }
+end
+
+record rule3__(alts)
+procedure rule3_()
+   suspend {
+      rule3__([qual_() , =" " , noun_() , =" " , iverb_() , ="."])
+      }
+end
+
+record noun__(alts)
+procedure noun_()
+   suspend {
+      noun__([="he"] | [="she"] | [="the shadowy figure"] | [="the boy"] | [="a child"])
+      }
+end
+
+record tverb__(alts)
+procedure tverb_()
+   suspend {
+      tverb__([="outlines"] | [="casts toward"] | [="stares at"] | [="captures"] | [="damns"])
+      }
+end
+
+record iverb__(alts)
+procedure iverb_()
+   suspend {
+      iverb__([="lingers"] | [="pauses"] | [="reflects"] | [="alights"] | [="hesitates"] | [="turns away"] | [="returns"] | [="kneels"] | [="stares"])
+      }
+end
+
+record clause__(alts)
+procedure clause_()
+   suspend {
+      clause__([="and " , iverb_()] | [="but " , iverb_()] | [="and " , iverb_()] | [="while " , ger_() , =" " , adj_()])
+      }
+end
+
+record adj__(alts)
+procedure adj_()
+   suspend {
+      adj__([="slowly"] | [="silently"] | [="darkly"] | [="with fear"] | [="expectantly"] | [="fearfully"])
+      }
+end
+
+record ger__(alts)
+procedure ger_()
+   suspend {
+      ger__([="waiting"] | [="pointing"] | [="breathing"])
+      }
+end
+
+record object__(alts)
+procedure object_()
+   suspend {
+      object__([article_() , =" " , onoun_()])
+      }
+end
+
+record article__(alts)
+procedure article_()
+   suspend {
+      article__([="a"] | [="the"])
+      }
+end
+
+record onoun__(alts)
+procedure onoun_()
+   suspend {
+      onoun__([="sky"] | [="void"] | [="abyss"] | [="star"] | [="darkness"] | [="lake"] | [="moon"] | [="cloud"])
+      }
+end
+
+record qual__(alts)
+procedure qual_()
+   suspend {
+      qual__([="while"] | [="as"] | [="momentarily"] | [="frozen,"])
+      }
+end
+
+record poem__(alts)
+procedure poem_()
+   suspend {
+      poem__([rule1_() , ="/" , rule2_() , ="/" , rule3_() , ="//"] | [rule2_() , ="/" , rule1_() , ="/" , rule3_() , ="//" , poem_() , ="/" , rule1_()])
+      }
+end
+
+link recog
+link matchlib
+global goal
+
+procedure init()
+   goal := rule1_
+   return
+end

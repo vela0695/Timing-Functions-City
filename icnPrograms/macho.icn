@@ -1,0 +1,99 @@
+
+procedure term_()
+   suspend {
+      (factor_()) |
+      (factor_() || ="*" || factor_() || ="*" || factor_() || ="*" || factor_())
+      }
+end
+
+procedure factor_()
+   suspend {
+      (id_()) |
+      (id_() || ="+" || id_())
+      }
+end
+
+procedure id_()
+   suspend {
+      (idleft_() || id_()) |
+      (idleft_())
+      }
+end
+
+procedure idleft_()
+   suspend {
+      (idlower_()) |
+      (idupper_()) |
+      (="_")
+      }
+end
+
+procedure idlower_()
+   suspend {
+      (="a") |
+      (="b") |
+      (="c") |
+      (="d") |
+      (="e") |
+      (="f") |
+      (="g") |
+      (="h") |
+      (="i") |
+      (="j") |
+      (="k") |
+      (="l") |
+      (="m") |
+      (="n") |
+      (="o") |
+      (="p") |
+      (="q") |
+      (="r") |
+      (="s") |
+      (="t") |
+      (="u") |
+      (="v") |
+      (="w") |
+      (="x") |
+      (="y") |
+      (="z")
+      }
+end
+
+procedure idupper_()
+   suspend {
+      (="A") |
+      (="B") |
+      (="C") |
+      (="D") |
+      (="E") |
+      (="F") |
+      (="G") |
+      (="H") |
+      (="I") |
+      (="J") |
+      (="K") |
+      (="L") |
+      (="M") |
+      (="N") |
+      (="O") |
+      (="P") |
+      (="Q") |
+      (="R") |
+      (="S") |
+      (="T") |
+      (="U") |
+      (="V") |
+      (="W") |
+      (="X") |
+      (="Y") |
+      (="Z")
+      }
+end
+
+procedure main()
+   while line := read() do {
+      writes(image(line))
+      if line ? (term_() & pos(0)) then write(": accepted")
+      else write(": rejected")
+      }
+end

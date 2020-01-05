@@ -1,0 +1,20 @@
+procedure main()
+
+   wc := 0
+
+   while line := read() do
+      every line ? (find("x") & f(tab(0))) ? (find(" ") & f(tab(0))) ? wc +:= 1
+
+   write(wc)
+
+end
+
+procedure f(s)
+
+   s ? {
+      f(tab(-5))
+      }
+
+   return s
+
+end

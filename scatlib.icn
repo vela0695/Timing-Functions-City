@@ -1,0 +1,115 @@
+############################################################################
+#
+#	File:     scatlib.icn
+#
+#	Subject:  An animated scatterplot library
+#
+#	Author:   Clinton Jeffery
+#
+#	Date:     6/26/97
+#
+###########################################################################
+#
+
+
+global	at,		# table of sets of objects at various locations
+	xcounts,	# table of x counts
+	ycounts,	# table of y counts
+        scatblack,
+        scatscale
+
+procedure scat_init(sscale)
+     local mask, current_proc, L, max, i, k, child, e
+
+     scatscale := \sscale | 2
+     /&window := open("scatterplot","g","geometry=150x180") |
+	 stop("scatlib: can't open window")
+     scatblack := Clone(&window, "fg=black")
+
+     xcounts := table(0)
+     ycounts := table(0)
+     at := table()
+
+end
+
+procedure scat_plot(who, xincr, yincr, wait, colorfor)
+   local loc
+   /colorfor := colorblack
+   loc := scaled_location(xcounts[who], ycounts[who])
+   if * delete( \ at[loc], who) = 0 then {
+      EraseArea(horizontal(loc) * scatscale, vertical(loc) * scatscale,
+		scatscale, scatscale)
+      }
+   else {
+      FillRectangle(colorfor(\ at[loc]),
+		    horizontal(loc) * scatscale, vertical(loc) * scatscale,
+		    scatscale, scatscale)
+      }
+   xcounts[who] +:= xincr
+   ycounts[who] +:= yincr
+   loc := scaled_location(xcounts[who], ycounts[who])
+   /at[loc] := set()
+   insert(at[loc], who)
+   if * insert(at[loc], who) = 1 then
+   FillRectangle(colorfor(\ at[loc]),
+		 horizontal(loc) * scatscale, vertical(loc) * scatscale,
+		 scatscale, scatscale)
+   delay(integer(wait))
+end
+
+procedure colorblack(S)
+   return scatblack
+end
+
+procedure scaled_location(x, y)
+   length := sqrt( x ^ 2 + y ^ 2 )
+   return location(scale(x, length), scale(y, length))
+#    return location(x, y)
+end
+
+procedure scale(coord, length)
+   if length < 1 then return 1
+   return 1 + integer(coord * log(length, 1.25) / length)
+end
+
+
+procedure scat_click(labelfunc)
+   local L, oldfg, max
+   static maxcolumns, maxrows
+   initial {
+       maxcolumns := 0
+       maxrows := 0
+   }
+
+   oldfg := Fg()
+
+   &x /:= scatscale
+   &y /:= scatscale
+   L := []
+   every ii := -1 to 1 do {
+       every jj := -1 to 1 do {
+	   l := location(&x + ii, &y + jj)
+	   every put(L, labelfunc(! \at[l]))
+       }
+   }
+
+   if max := * (L[1][2]) then {
+      every max <:= *( (!L)[2] )
+      maxcolumns <:= max
+      }
+   maxrows <:= *L
+   &col := WAttrib("columns") - maxcolumns
+   &row := WAttrib("lines") - maxrows - 1
+   EraseArea(&x,&y)
+   if *L > 0 then {
+      every i := 1 to *L do {
+	 GotoRC(WAttrib("lines") - *L + i, WAttrib("columns") - max)
+	 Fg(L[i][1])
+	 writes(&window,L[i][2])
+	 }
+      }
+   Fg(oldfg)
+   maxrows := *L
+   maxcolumns := \max | 0
+
+end

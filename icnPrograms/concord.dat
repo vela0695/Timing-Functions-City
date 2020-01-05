@@ -1,0 +1,524 @@
+
+
+
+
+
+
+
+
+
+
+
+
+             How to Order Icon Programming Language Material
+
+
+
+    General Information: The prices listed on the order form include
+    media, printed documentation (but not the books on Icon), han-
+    dling and shipping in the United States, Canada, and Mexico.
+    Shipment to other countries is made by air mail only, for which
+    there are additional charges as follows: $5 per diskette package,
+    $10 per tape or cartridge package, and $10 per documentation
+    package.  Commercial express delivery will be provided if author-
+    ization and an account number to charge is given with the order.
+
+    Payment: Payment may be made by check or money order, but credit
+    card orders cannot be accepted.  Remittance _m_u_s_t be in U.S. dol-
+    lars, payable to The University of Arizona.  There is a $10 ser-
+    vice charge for a check drawn on a bank that does not have a
+    branch in the United States.  Payment should accompany the order.
+    For organizations that cannot provide pre-payment, purchase ord-
+    ers will be accepted, but there is a $5 charge for processing
+    such orders.
+
+    The UNIX Package: The UNIX implementation of Icon can be config-
+    ured to run on most computers with UNIX-based operating systems,
+    including the VAX, Sun Workstation, IBM RT PC, AT&T 3B, and
+    Pyramid.  The distribution contains source code, a test suite,
+    the Icon program library, and documentation in machine-readable
+    form.  Object and executable files are not included, since they
+    depend on the target computer.
+
+    The VMS Package: The VMS implementation requires VMS Release 4.2
+    or higher. The distribution contains source code, a test suite,
+    the Icon program library, and documentation in machine-readable
+    form.  Object and executable files are included.
+
+    _N_o_t_e: The UNIX and VMS packages contain different system-specific
+    configurations and support material. Neither will run on the
+    other system.
+
+    The Macintosh Package: The Macintosh implementation runs as part
+    of the MPW environment. It is not a stand-alone application; do
+    not order this package unless you have MPW. The diskette includes
+    executable files, a few sample programs, and documentation in
+    machine-readable form.  Source code and the Icon program library
+    are not yet available.  Information about MPW is available from:
+
+
+
+
+
+
+    IPD1d                         - 1 -             February 17, 1987
+
+
+
+
+
+
+            Apple Developer's and Programmer's Association
+            290 SW 43rd Street
+            Renton, WA   98055
+            (206) 251-6548
+
+
+    The MS-DOS Packages: The MS-DOS implementation of Icon runs on
+    computers with 8086/88/186/286-family processors. IBM hardware
+    compatibility is not necessary. MS- or PC-DOS Version 2.0 or
+    higher is required.  There are both SMM and LMM implementations,
+    and there are two forms of the LMM one. The SMM implementation
+    uses 192k of memory. The LMM implementation requires at least
+    256k, but runs better with more.  The SMM implementation is fas-
+    ter and more compact than the LMM one, but it cannot handle pro-
+    grams that need large amounts of storage.  There are two forms of
+    the LMM implementation, one that allows Icon's storage regions to
+    expand as needed (referred to as LMM/ER on the order form) and a
+    `fixed-regions' one in which the regions cannot expand (referred
+    to as LMM/FR on the order form). The LMM/FR implementation is
+    considerably faster than the LMM/ER one, but it may not be able
+    to use all of the available memory.  It is inadvisable to run
+    more than over version of Icon on the same computer because of
+    file-naming conflicts. The SMM, LMM/ER, and LMM/FR diskettes
+    include executable files, a few sample programs, and documenta-
+    tion in machine-readable form.
+
+    The source code for MS-DOS has been compiled successfully under
+    Microsoft C Version 4.0 and Lattice C Version 3.2.  It may be
+    possible to use other C compilers, but this has not been done yet
+    and certainly will require some work: _c_a_v_e_a_t _e_m_p_t_o_r. The distri-
+    bution is in _a_r_c format and hence is suitable only for use on
+    MS-DOS systems.  It includes source files, a configuration system
+    for different C compilers, a set of tools, a test suite, and
+    documentation in machine-readable form.
+
+    The Icon program library for MS-DOS is the same for the SMM,
+    LMM/ER, and LMM/FR implementations and is distributed on a
+    separate diskette.
+
+    The PC/IX Packages: The PC/IX implementation of Icon is a SMM
+    one.  Source code and the Icon program library are distributed
+    separately. The source code diskettes contain configuration
+    information and test suites for other UNIX installations, such as
+    the IBM RT PC. All PC/IX diskettes are written in _d_u_m_p/_r_e_s_t_o_r_e
+    format, which is the same format as _b_a_c_k_u_p/_r_e_s_t_o_r_e on the RT PC
+    under AIX.
+
+    The XENIX Packages: The XENIX implementation of Icon was produced
+    under SCO XENIX V with 8086 code.  It will run on other XENIX
+    systems, although the full extent of compatibility is not known.
+    There are both SMM and LMM/FR implementations.  It is inadvisable
+    to run both the SMM and LMM/FR implementations on the same com-
+    puter because of file-naming conflicts.  The Icon program library
+    is distributed separately. Source code for XENIX is not yet
+    available.  All XENIX diskettes are written in _t_a_r format.
+
+    The Porting Package: This package is intended for porting Icon to
+    operating systems and computers on which it has not already been
+
+    IPD1d                         - 2 -             February 17, 1987
+
+
+
+
+
+
+    implemented.  This version of Icon does not require a hierarchi-
+    cal file system. In addition to the source code, there are port-
+    ing instructions and suites of test programs. The distribution is
+    in MS-DOS ASCII format for ease of file transfer. Individual
+    files are packaged in larger files to reduce the effort of file
+    transfer and a C program for unpacking them is included.  _N_o_t_e:
+    Only 5-1/4'' diskettes are available. Persons requiring 3-1/2''
+    diskettes will have to make arrangements for conversion.
+
+    The Documentation Package: This package contains a copy of the
+    Icon language book, a description of recent additions to the
+    language, a compilation of material from the programming corners
+    of previous Icon Newsletters, and other material related to pro-
+    gramming in Icon.
+
+
+    For more information, contact
+
+            Icon Project
+            Department of Computer Science
+            Gould-Simpson Science Building
+            The University of Arizona
+            Tucson, AZ   85721
+            U.S.A.
+            (602) 621-6613
+            icon-project@arizona.edu     (Internet)
+            ... {allegra, cmcl2, ihnp4, noao}!arizona!icon-project     (uucp)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    IPD1d                         - 3 -             February 17, 1987
+
+
+
+
+
+
+                               Order Form
+
+
+
+    _________________________________________________________________
+    Ship to:                                      Return this form with payment to:
+
+    Name      ______________________________     Icon Project
+
+    Address   ______________________________     Dept. of Computer Science
+
+              ______________________________     The University of Arizona
+
+              ______________________________     Tucson, AZ   85721
+
+    Telephone ______________________________
+
+    UNIX Icon (9-track magnetic tape)          $25      ________
+       options: [] tar   [] cpio       [] 1600 bpi   [] 6250 bpi
+
+    UNIX Icon (3M DC 300 XL/P cartridge)       $40      ________
+       options: [] tar   [] cpio
+
+    VAX/VMS Icon (9-track magnetic tape)       $25      ________
+       options: [] 1600 bpi   [] 6250 bpi
+
+    Macintosh Icon (3-1/2'' 1S diskette)       $15      ________
+
+    MS-DOS Icon, SMM (5-1/4'' 2S/DD diskette)  $15      ________
+
+    MS-DOS Icon, LMM/ER (5-1/4'' 2S/DD diskette)        $15 ________
+
+    MS-DOS Icon, LMM/FR (5-1/4'' 2S/DD diskette)        $15 ________
+
+    MS-DOS Icon, source code (2 5-1/4'' 2S/DD diskettes)$25________
+
+    MS-DOS Icon Program Library (5-1/4'' 2S/DD diskette)$15 ________
+
+    PC/IX Icon (5-1/4'' 2S/DD diskette)        $15      ________
+
+    PC/IX Icon source code (4 5-1/4'' 2S/DD diskettes)  $35________
+
+    PC/IX Icon Program Library (5-1/4'' 2S/DD diskette) $15 ________
+
+    XENIX Icon, SMM (5-1/4'' 2S/DD diskette)   $15      ________
+
+    XENIX Icon, LMM/FR (5-1/4'' 2S/DD diskette)         $15________
+
+    XENIX Icon Program Library (5-1/4'' 2S/DD diskette) $15________
+
+    Icon Porting System (4 5-1/4'' 2S/DD diskettes)     $35________
+
+    Documentation Package                      $29      ________
+
+    Other charges (see above)                           ________
+
+    Total                                               ________
+
+
+    IPD1d                         - 4 -             February 17, 1987
+
+
+
+
+
+
+
+
+
+
+
+
+             How to Order Icon Programming Language Material
+
+
+
+    General Information: The prices listed on the order form include
+    media, printed documentation (but not the books on Icon), han-
+    dling and shipping in the United States, Canada, and Mexico.
+    Shipment to other countries is made by air mail only, for which
+    there are additional charges as follows: $5 per diskette package,
+    $10 per tape or cartridge package, and $10 per documentation
+    package.  Commercial express delivery will be provided if author-
+    ization and an account number to charge is given with the order.
+
+    Payment: Payment may be made by check or money order, but credit
+    card orders cannot be accepted.  Remittance _m_u_s_t be in U.S. dol-
+    lars, payable to The University of Arizona.  There is a $10 ser-
+    vice charge for a check drawn on a bank that does not have a
+    branch in the United States.  Payment should accompany the order.
+    For organizations that cannot provide pre-payment, purchase ord-
+    ers will be accepted, but there is a $5 charge for processing
+    such orders.
+
+    The UNIX Package: The UNIX implementation of Icon can be config-
+    ured to run on most computers with UNIX-based operating systems,
+    including the VAX, Sun Workstation, IBM RT PC, AT&T 3B, and
+    Pyramid.  The distribution contains source code, a test suite,
+    the Icon program library, and documentation in machine-readable
+    form.  Object and executable files are not included, since they
+    depend on the target computer.
+
+    The VMS Package: The VMS implementation requires VMS Release 4.2
+    or higher. The distribution contains source code, a test suite,
+    the Icon program library, and documentation in machine-readable
+    form.  Object and executable files are included.
+
+    _N_o_t_e: The UNIX and VMS packages contain different system-specific
+    configurations and support material. Neither will run on the
+    other system.
+
+    The Macintosh Package: The Macintosh implementation runs as part
+    of the MPW environment. It is not a stand-alone application; do
+    not order this package unless you have MPW. The diskette includes
+    executable files, a few sample programs, and documentation in
+    machine-readable form.  Source code and the Icon program library
+    are not yet available.  Information about MPW is available from:
+
+
+
+
+
+
+    IPD1d                         - 1 -             February 17, 1987
+
+
+
+
+
+
+            Apple Developer's and Programmer's Association
+            290 SW 43rd Street
+            Renton, WA   98055
+            (206) 251-6548
+
+
+    The MS-DOS Packages: The MS-DOS implementation of Icon runs on
+    computers with 8086/88/186/286-family processors. IBM hardware
+    compatibility is not necessary. MS- or PC-DOS Version 2.0 or
+    higher is required.  There are both SMM and LMM implementations,
+    and there are two forms of the LMM one. The SMM implementation
+    uses 192k of memory. The LMM implementation requires at least
+    256k, but runs better with more.  The SMM implementation is fas-
+    ter and more compact than the LMM one, but it cannot handle pro-
+    grams that need large amounts of storage.  There are two forms of
+    the LMM implementation, one that allows Icon's storage regions to
+    expand as needed (referred to as LMM/ER on the order form) and a
+    `fixed-regions' one in which the regions cannot expand (referred
+    to as LMM/FR on the order form). The LMM/FR implementation is
+    considerably faster than the LMM/ER one, but it may not be able
+    to use all of the available memory.  It is inadvisable to run
+    more than over version of Icon on the same computer because of
+    file-naming conflicts. The SMM, LMM/ER, and LMM/FR diskettes
+    include executable files, a few sample programs, and documenta-
+    tion in machine-readable form.
+
+    The source code for MS-DOS has been compiled successfully under
+    Microsoft C Version 4.0 and Lattice C Version 3.2.  It may be
+    possible to use other C compilers, but this has not been done yet
+    and certainly will require some work: _c_a_v_e_a_t _e_m_p_t_o_r. The distri-
+    bution is in _a_r_c format and hence is suitable only for use on
+    MS-DOS systems.  It includes source files, a configuration system
+    for different C compilers, a set of tools, a test suite, and
+    documentation in machine-readable form.
+
+    The Icon program library for MS-DOS is the same for the SMM,
+    LMM/ER, and LMM/FR implementations and is distributed on a
+    separate diskette.
+
+    The PC/IX Packages: The PC/IX implementation of Icon is a SMM
+    one.  Source code and the Icon program library are distributed
+    separately. The source code diskettes contain configuration
+    information and test suites for other UNIX installations, such as
+    the IBM RT PC. All PC/IX diskettes are written in _d_u_m_p/_r_e_s_t_o_r_e
+    format, which is the same format as _b_a_c_k_u_p/_r_e_s_t_o_r_e on the RT PC
+    under AIX.
+
+    The XENIX Packages: The XENIX implementation of Icon was produced
+    under SCO XENIX V with 8086 code.  It will run on other XENIX
+    systems, although the full extent of compatibility is not known.
+    There are both SMM and LMM/FR implementations.  It is inadvisable
+    to run both the SMM and LMM/FR implementations on the same com-
+    puter because of file-naming conflicts.  The Icon program library
+    is distributed separately. Source code for XENIX is not yet
+    available.  All XENIX diskettes are written in _t_a_r format.
+
+    The Porting Package: This package is intended for porting Icon to
+    operating systems and computers on which it has not already been
+
+    IPD1d                         - 2 -             February 17, 1987
+
+
+
+
+
+
+    implemented.  This version of Icon does not require a hierarchi-
+    cal file system. In addition to the source code, there are port-
+    ing instructions and suites of test programs. The distribution is
+    in MS-DOS ASCII format for ease of file transfer. Individual
+    files are packaged in larger files to reduce the effort of file
+    transfer and a C program for unpacking them is included.  _N_o_t_e:
+    Only 5-1/4'' diskettes are available. Persons requiring 3-1/2''
+    diskettes will have to make arrangements for conversion.
+
+    The Documentation Package: This package contains a copy of the
+    Icon language book, a description of recent additions to the
+    language, a compilation of material from the programming corners
+    of previous Icon Newsletters, and other material related to pro-
+    gramming in Icon.
+
+
+    For more information, contact
+
+            Icon Project
+            Department of Computer Science
+            Gould-Simpson Science Building
+            The University of Arizona
+            Tucson, AZ   85721
+            U.S.A.
+            (602) 621-6613
+            icon-project@arizona.edu     (Internet)
+            ... {allegra, cmcl2, ihnp4, noao}!arizona!icon-project     (uucp)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    IPD1d                         - 3 -             February 17, 1987
+
+
+
+
+
+
+                               Order Form
+
+
+
+    _________________________________________________________________
+    Ship to:                                      Return this form with payment to:
+
+    Name      ______________________________     Icon Project
+
+    Address   ______________________________     Dept. of Computer Science
+
+              ______________________________     The University of Arizona
+
+              ______________________________     Tucson, AZ   85721
+
+    Telephone ______________________________
+
+    UNIX Icon (9-track magnetic tape)          $25      ________
+       options: [] tar   [] cpio       [] 1600 bpi   [] 6250 bpi
+
+    UNIX Icon (3M DC 300 XL/P cartridge)       $40      ________
+       options: [] tar   [] cpio
+
+    VAX/VMS Icon (9-track magnetic tape)       $25      ________
+       options: [] 1600 bpi   [] 6250 bpi
+
+    Macintosh Icon (3-1/2'' 1S diskette)       $15      ________
+
+    MS-DOS Icon, SMM (5-1/4'' 2S/DD diskette)  $15      ________
+
+    MS-DOS Icon, LMM/ER (5-1/4'' 2S/DD diskette)        $15 ________
+
+    MS-DOS Icon, LMM/FR (5-1/4'' 2S/DD diskette)        $15 ________
+
+    MS-DOS Icon, source code (2 5-1/4'' 2S/DD diskettes)$25________
+
+    MS-DOS Icon Program Library (5-1/4'' 2S/DD diskette)$15 ________
+
+    PC/IX Icon (5-1/4'' 2S/DD diskette)        $15      ________
+
+    PC/IX Icon source code (4 5-1/4'' 2S/DD diskettes)  $35________
+
+    PC/IX Icon Program Library (5-1/4'' 2S/DD diskette) $15 ________
+
+    XENIX Icon, SMM (5-1/4'' 2S/DD diskette)   $15      ________
+
+    XENIX Icon, LMM/FR (5-1/4'' 2S/DD diskette)         $15________
+
+    XENIX Icon Program Library (5-1/4'' 2S/DD diskette) $15________
+
+    Icon Porting System (4 5-1/4'' 2S/DD diskettes)     $35________
+
+    Documentation Package                      $29      ________
+
+    Other charges (see above)                           ________
+
+    Total                                               ________
+
+
+    IPD1d                         - 4 -             February 17, 1987

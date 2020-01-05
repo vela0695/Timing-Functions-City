@@ -1,0 +1,78 @@
+procedure main()
+local a, b, bbits, prod, time
+write := writes := 1
+i := 1
+while a := integer(read()) do {
+b := integer(read()) | break
+bbits := binrep(b)
+if prod := ipower(a,bbits) then
+write(istring(prod))
+else
+write("Too many digits in the result!")
+i +:= 1
+}
+end
+procedure binrep(n)
+local retval
+retval := ""
+while n > 0 do {
+retval := n % 2 || retval
+n /:= 2
+}
+return retval
+end
+procedure ipower(a, bbits)
+local b, m1, retval
+m1 := (if a >= 10000 then [a % 10000, a / 10000] else [a])
+retval := [1]
+every b := !bbits do {
+(retval := product(retval, retval)) | fail
+if b == "1" then
+(retval := product(retval, m1)) | fail
+}
+return retval
+end
+procedure product(a,b)
+local i, j, k, retval, x
+if *a + *b > 5001 then
+fail
+retval := list(*a + *b, 0)
+every i := 1 to *a do
+every j := 1 to *b do {
+k := i + j - 1
+retval[k] +:= a[i] * b[j]
+while (x := retval[k]) >= 10000 do {
+retval[k + 1] +:= x / 10000
+retval[k] %:= 10000
+k +:= 1
+}   }
+every i := *retval to 1 by -1 do
+if retval[i] > 0 then
+return retval[1+:i]
+return retval[1+:i]
+end
+procedure print_it(n)
+local ds, i, j, k
+ds := ""
+every k := *n to 1 by -1 do
+ds ||:= right(n[k], 4, "0")
+ds ?:= (tab(many("0")), tab(0))
+ds := repl("0", 4 - (*ds - 1) % 5) || ds
+every i := 1 to *ds by 50 do {
+k := *ds > i + 45 | *ds
+every j := i to k by 5 do {
+ds
+writes(ds[j+:5], " ")
+}
+write()
+}
+write()
+end
+procedure istring(n)
+s := ""
+every s := right(!n,4,"0") || s
+s ?:= {
+tab(many('0')) & tab(0)
+}
+return s
+end
